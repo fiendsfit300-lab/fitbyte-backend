@@ -15,7 +15,7 @@ namespace Gym_FitByte.Data
         public DbSet<Asistencia> Asistencias { get; set; }
         public DbSet<Progreso> Progresos { get; set; }
 
-        // ====== Nuevas tablas (Proveedores / Productos / Compras / Ventas) ======
+        // ====== Inventario ======
         public DbSet<Proveedor> Proveedores { get; set; }
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Compra> Compras { get; set; }
@@ -30,7 +30,11 @@ namespace Gym_FitByte.Data
         public DbSet<VisitaDiaria> VisitasDiarias { get; set; }
         public DbSet<VisitaHistorial> VisitasHistorial { get; set; }
 
-        // ====== Configuración de entidades ======
+        // ====== RUTINAS (Nuevo) ======
+        public DbSet<Rutina> Rutinas { get; set; }
+        public DbSet<Ejercicio> Ejercicios { get; set; }
+
+        // ====== Configuración ======
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -79,9 +83,9 @@ namespace Gym_FitByte.Data
             // ---- Pre-Registros ----
             modelBuilder.Entity<PreRegistro>()
                 .Property(p => p.Estado)
-                .HasConversion<int>(); // guarda enum como int
+                .HasConversion<int>();
 
-            // ---- Visitas de un día ----
+            // ---- Visitas ----
             modelBuilder.Entity<VisitaDiaria>()
                 .HasMany(v => v.Historial)
                 .WithOne(h => h.Visita!)
@@ -93,10 +97,33 @@ namespace Gym_FitByte.Data
 
             modelBuilder.Entity<VisitaDiaria>()
                 .Property(v => v.Estado)
-                .HasConversion<int>(); // guarda enum como int
+                .HasConversion<int>();
 
             modelBuilder.Entity<VisitaHistorial>()
                 .HasIndex(h => new { h.VisitaId, h.Fecha });
+
+            // ========================================
+            //             RUTINAS NUEVO
+            // ========================================
+
+            // Una rutina tiene muchos ejercicios
+            modelBuilder.Entity<Rutina>()
+                .HasMany(r => r.Ejercicios)
+                .WithOne(e => e.Rutina!)
+                .HasForeignKey(e => e.RutinaId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Índices recomendados
+            modelBuilder.Entity<Rutina>()
+                .HasIndex(r => new { r.Nivel, r.Genero });
+
+            modelBuilder.Entity<Rutina>()
+                .Property(r => r.Nivel)
+                .HasMaxLength(30);
+
+            modelBuilder.Entity<Rutina>()
+                .Property(r => r.Genero)
+                .HasMaxLength(10);
         }
     }
 }
