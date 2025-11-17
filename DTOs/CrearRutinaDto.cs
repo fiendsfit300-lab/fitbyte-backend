@@ -6,7 +6,9 @@
     public string Nivel { get; set; } = "Principiante";
     public string Genero { get; set; } = "Hombre";
     public IFormFile Imagen { get; set; } = default!;
-    public List<EjercicioDto> Ejercicios { get; set; } = new();
+
+ 
+    public string EjerciciosJson { get; set; } = "[]";
 }
 
 public class EjercicioDto
@@ -15,5 +17,5 @@ public class EjercicioDto
     public string Series { get; set; } = string.Empty;
     public string Repeticiones { get; set; } = string.Empty;
     public string Descanso { get; set; } = string.Empty;
-    public string Notas { get; set; } = "";
+    public string Notas { get; set; } = string.Empty;
 }
