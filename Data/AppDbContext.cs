@@ -73,6 +73,12 @@ namespace Gym_FitByte.Data
                 .HasForeignKey(i => i.CompraId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Ejercicio>()
+             .HasOne(e => e.Rutina)
+             .WithMany(r => r.Ejercicios)
+             .HasForeignKey(e => e.RutinaId)
+             .OnDelete(DeleteBehavior.Cascade);
+
             // ---- Ventas ----
             modelBuilder.Entity<Venta>()
                 .HasMany(v => v.Items)
