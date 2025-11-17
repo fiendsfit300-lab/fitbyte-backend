@@ -1,21 +1,17 @@
-﻿public class CrearRutinaDto
+﻿namespace Gym_FitByte.DTOs
 {
-    public string Titulo { get; set; } = string.Empty;
-    public string Descripcion { get; set; } = string.Empty;
-    public string Duracion { get; set; } = "30 min";
-    public string Nivel { get; set; } = "Principiante";
-    public string Genero { get; set; } = "Hombre";
+
+
+public class CrearRutinaDto
+{
+    public string Titulo { get; set; } = "";
+    public string Descripcion { get; set; } = "";
+    public string Duracion { get; set; } = "";
+    public string Nivel { get; set; } = "";
+    public string Genero { get; set; } = "";
     public IFormFile Imagen { get; set; } = default!;
 
- 
+    // AQUI PEGAS EL JSON COMPLETO DE LOS EJERCICIOS EN SWAGGER
     public string EjerciciosJson { get; set; } = "[]";
 }
-
-public class EjercicioDto
-{
-    public string Nombre { get; set; } = string.Empty;
-    public string Series { get; set; } = string.Empty;
-    public string Repeticiones { get; set; } = string.Empty;
-    public string Descanso { get; set; } = string.Empty;
-    public string Notas { get; set; } = string.Empty;
 }

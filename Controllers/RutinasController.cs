@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Gym_FitByte.Data;
+using Gym_FitByte.DTOs;
 using Gym_FitByte.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 namespace Gym_FitByte.Controllers
@@ -22,32 +23,33 @@ namespace Gym_FitByte.Controllers
             _config = config;
         }
 
-  
+        // =====================
+        // CREAR RUTINA
+        // =====================
         [HttpPost("crear")]
         public async Task<IActionResult> CrearRutina([FromForm] CrearRutinaDto dto)
         {
-            if (dto.Imagen == null || dto.Imagen.Length == 0)
-                return BadRequest("Debe subir una imagen para la rutina.");
+            if (dto.Imagen == null)
+                return BadRequest("Debe subir una imagen.");
 
-            // 1️⃣ Subir imagen a Azure
+            // SUBIR IMAGEN A AZURE
             var urlImagen = await SubirImagenABlob(dto.Imagen);
 
-            // 2️⃣ Deserializar lista de ejercicios desde JSON
-            List<EjercicioDto> ejerciciosDto;
-
+            // DESERIALIZAR JSON DE EJERCICIOS
+            List<EjercicioDto>? ejerciciosDto;
             try
             {
-                ejerciciosDto = string.IsNullOrWhiteSpace(dto.EjerciciosJson)
-                    ? new List<EjercicioDto>()
-                    : JsonSerializer.Deserialize<List<EjercicioDto>>(dto.EjerciciosJson)
-                      ?? new List<EjercicioDto>();
+                ejerciciosDto = JsonSerializer.Deserialize<List<EjercicioDto>>(dto.EjerciciosJson);
             }
             catch
             {
                 return BadRequest("El formato del JSON en 'EjerciciosJson' no es válido.");
             }
 
-            // 3️⃣ Crear la rutina
+            if (ejerciciosDto == null)
+                ejerciciosDto = new List<EjercicioDto>();
+
+            // CREAR RUTINA
             var rutina = new Rutina
             {
                 Titulo = dto.Titulo,
@@ -69,13 +71,12 @@ namespace Gym_FitByte.Controllers
             _context.Rutinas.Add(rutina);
             await _context.SaveChangesAsync();
 
-            return Ok(new
-            {
-                mensaje = "Rutina creada correctamente.",
-                rutina.Id
-            });
+            return Ok(rutina);
         }
- 
+
+        // =====================
+        // OBTENER POR CATEGORÍA
+        // =====================
         [HttpGet("porCategoria")]
         public async Task<IActionResult> ObtenerPorCategoria(string nivel, string genero)
         {
@@ -87,7 +88,9 @@ namespace Gym_FitByte.Controllers
             return Ok(data);
         }
 
-      
+        // =====================
+        // OBTENER DETALLE
+        // =====================
         [HttpGet("{id:int}")]
         public async Task<IActionResult> ObtenerRutina(int id)
         {
@@ -95,38 +98,21 @@ namespace Gym_FitByte.Controllers
                 .Include(r => r.Ejercicios)
                 .FirstOrDefaultAsync(r => r.Id == id);
 
-            if (rutina == null)
-                return NotFound("Rutina no encontrada.");
-
-            return Ok(rutina);
+            return rutina == null ? NotFound("Rutina no encontrada.") : Ok(rutina);
         }
 
- 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> EliminarRutina(int id)
-        {
-            var rutina = await _context.Rutinas.FindAsync(id);
-            if (rutina == null)
-                return NotFound();
-
-            _context.Rutinas.Remove(rutina);
-            await _context.SaveChangesAsync();
-
-            return Ok("Rutina eliminada.");
-        }
-
-    
+        // =====================
+        // SUBIR IMAGEN A AZURE
+        // =====================
         private async Task<string> SubirImagenABlob(IFormFile archivo)
         {
             var connectionString = _config.GetConnectionString("AzureBlobStorage");
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
 
-            // Crear contenedor si no existe
             await containerClient.CreateIfNotExistsAsync();
             await containerClient.SetAccessPolicyAsync(PublicAccessType.Blob);
 
-            // Crear nombre único
             var nombre = $"{Guid.NewGuid()}{Path.GetExtension(archivo.FileName)}";
             var blobClient = containerClient.GetBlobClient(nombre);
 
@@ -135,30 +121,5 @@ namespace Gym_FitByte.Controllers
 
             return blobClient.Uri.ToString();
         }
-    }
-
- 
-
-    public class CrearRutinaDto
-    {
-        public string Titulo { get; set; } = string.Empty;
-        public string Descripcion { get; set; } = string.Empty;
-        public string Duracion { get; set; } = string.Empty;
-        public string Nivel { get; set; } = string.Empty;
-        public string Genero { get; set; } = string.Empty;
-
-        // Imagen obligatoria
-        public IFormFile Imagen { get; set; } = default!;
- 
-        public string EjerciciosJson { get; set; } = "[]";
-    }
-
-    public class EjercicioDto
-    {
-        public string Nombre { get; set; } = string.Empty;
-        public string Series { get; set; } = string.Empty;
-        public string Repeticiones { get; set; } = string.Empty;
-        public string Descanso { get; set; } = string.Empty;
-        public string Notas { get; set; } = string.Empty;
     }
 }
