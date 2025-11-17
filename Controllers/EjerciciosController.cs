@@ -44,9 +44,19 @@ namespace Gym_FitByte.Controllers
             return Ok(new
             {
                 message = "Ejercicio creado correctamente.",
-                ejercicio
+                ejercicio = new
+                {
+                    ejercicio.Id,
+                    ejercicio.Nombre,
+                    ejercicio.Series,
+                    ejercicio.Repeticiones,
+                    ejercicio.Descanso,
+                    ejercicio.Notas,
+                    ejercicio.RutinaId
+                }
             });
         }
+
 
         // ============================
         // LISTAR EJERCICIOS DE UNA RUTINA
