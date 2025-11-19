@@ -44,19 +44,31 @@ namespace Gym_FitByte.Controllers
             return Ok(new
             {
                 message = "Ejercicio creado correctamente.",
-                ejercicio = new
-                {
-                    ejercicio.Id,
-                    ejercicio.Nombre,
-                    ejercicio.Series,
-                    ejercicio.Repeticiones,
-                    ejercicio.Descanso,
-                    ejercicio.Notas,
-                    ejercicio.RutinaId
-                }
+                ejercicio
             });
         }
 
+        // ============================
+        // ACTUALIZAR EJERCICIO
+        // ============================
+        [HttpPut("actualizar/{id:int}")]
+        public async Task<IActionResult> ActualizarEjercicio(int id, [FromBody] CrearEjercicioDto dto)
+        {
+            var ejercicio = await _context.Ejercicios.FindAsync(id);
+
+            if (ejercicio == null)
+                return NotFound("El ejercicio no existe.");
+
+            ejercicio.Nombre = dto.Nombre;
+            ejercicio.Series = dto.Series;
+            ejercicio.Repeticiones = dto.Repeticiones;
+            ejercicio.Descanso = dto.Descanso;
+            ejercicio.Notas = dto.Notas;
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Ejercicio actualizado correctamente.");
+        }
 
         // ============================
         // LISTAR EJERCICIOS DE UNA RUTINA

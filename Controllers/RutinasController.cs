@@ -54,6 +54,34 @@ namespace Gym_FitByte.Controllers
         }
 
         // ============================
+        // UPDATE RUTINA
+        // ============================
+        [HttpPut("actualizar/{id:int}")]
+        public async Task<IActionResult> ActualizarRutina(int id, [FromForm] CrearRutinaDto dto)
+        {
+            var rutina = await _context.Rutinas.FindAsync(id);
+
+            if (rutina == null)
+                return NotFound("La rutina no existe.");
+
+            // Si viene imagen nueva → reemplazarla
+            if (dto.Imagen != null)
+            {
+                rutina.ImagenUrl = await SubirImagen(dto.Imagen);
+            }
+
+            rutina.Titulo = dto.Titulo;
+            rutina.Descripcion = dto.Descripcion;
+            rutina.Duracion = dto.Duracion;
+            rutina.Genero = dto.Genero;
+            rutina.Nivel = dto.Nivel;
+
+            await _context.SaveChangesAsync();
+
+            return Ok("Rutina actualizada correctamente.");
+        }
+
+        // ============================
         // LISTAR TODAS
         // ============================
         [HttpGet]
