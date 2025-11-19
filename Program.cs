@@ -1,5 +1,6 @@
 ﻿using Gym_FitByte.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 
 // ===============================
+//   SERIALIZACIÓN JSON (IMPORTANTE)
+//   ✔ Evita ciclos infinitos Rutina → Ejercicios → Rutina
+//   ✔ SOLUCIONA EL ERROR 500
+// ===============================
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.WriteIndented = true;
+});
+
+// ===============================
 //   CORS
 // ===============================
 builder.Services.AddCors(options =>
@@ -39,9 +51,8 @@ builder.Services.AddCors(options =>
 
 
 // ===============================
-//   CONTROLADORES + SWAGGER
+//   SWAGGER
 // ===============================
-builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -55,8 +66,6 @@ var app = builder.Build();
 // ===============================
 //   AUTO-MIGRACIONES
 // ===============================
-// Esto ejecuta "dotnet ef database update" automáticamente
-// cada vez que Render levanta el contenedor.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
